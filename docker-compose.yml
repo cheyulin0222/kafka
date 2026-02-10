@@ -16,9 +16,13 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      # 2. 必須新增這兩行（針對 Transaction 事務狀態）
+      # 預設值為 3 ，至少要有在 3 台 Broker 上存檔
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      # 預設值為 2 ，當 Producer 使用 acks=all 時，ISR 名單內至少要有幾個人
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # 預設 30000ms ， 通常夠用，一個 Follower 在設定時間內，沒有跟上 Leader 的最新 Offset，或者沒向 Leader 發送同步請求，
+      # Leader 就會把他從 ISR 踢出
+      KAFKA_REPLICA_LAG_TIME_MAX_MS: 30000
       # 資料保存時間，預設 7 天 (168 小時)
       KAFKA_LOG_RETENTION_HOURS: 168
       # 資料保存容量，預設 -1 (不限制)
