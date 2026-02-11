@@ -9,16 +9,30 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:29092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      # 指定 CONTROLLER 這個名稱就是專門給管理員進出的。
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # 指定 INTERNAL 這個名稱就是內部同步用的
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # 定義 Kafka 伺服器在容器內部要「監聽」哪些連接埠
+      # PLAINTEXT://:9092：在 9092 埠開一個對外門。
+      # INTERNAL://:29092：在 29092 埠開一個對內門。
+      # CONTROLLER://:9093：在 9093 埠開一個管理員專用門
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:29092
+      # Kafka 會把這些地址告訴 Client
+      # PLAINTEXT://localhost:9092：對外印 localhost（給 Mac/Windows ）
+      # INTERNAL://kafka:29092：對內印 kafka（給 Docker 內部的其他容器）
+      # Controller 是 Kafka 內部自己在用的，不需要發名片給外面的客戶
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      # 定義每個監聽器名稱對應的通訊協定
+      # 全部寫 PLAINTEXT 代表「不加密、明文傳輸」
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+      # 讓節點 (Broker)知道誰有資格投票決定「誰是老大」
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      # 預設值為 3，至少有 3 台 Broker 紀錄 Consumer Group 的 Offset 位置 (讀到哪)
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      # 預設值為 3 ，至少要有在 3 台 Broker 上存檔
+      # 預設值為 3，至少有 3 台 Broker 紀錄 @Transactional 事務的狀態 (Commit/Abort)
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      # 預設值為 2 ，當 Producer 使用 acks=all 時，ISR 名單內至少要有幾個人
+      # 預設值為 2 ，當 Producer 使用 acks=all 時，ISR 名單內至少要有 2 台 Broker
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       # 預設 30000ms ， 通常夠用，一個 Follower 在設定時間內，沒有跟上 Leader 的最新 Offset，或者沒向 Leader 發送同步請求，
       # Leader 就會把他從 ISR 踢出

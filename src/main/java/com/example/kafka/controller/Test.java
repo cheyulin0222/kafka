@@ -27,8 +27,8 @@ public class Test {
     }
 
     @GetMapping("/createOrder")
-    public void createOrder(@RequestParam String orderId, @RequestParam String product, @RequestParam double amount) throws JsonProcessingException {
-        orderService.createOrder(orderId, product, amount);
+    public void createOrder(@RequestParam String orderId, @RequestParam String product, @RequestParam double amount) throws JsonProcessingException, InterruptedException {
+        orderService.createOrderWithSync(orderId, product, amount);
     }
 
 
