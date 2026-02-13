@@ -1,6 +1,10 @@
 package com.example.kafka.service;
 
 import com.example.kafka.model.Order;
+import com.example.kafka.model.OrderEntity;
+import com.example.kafka.model.ProcessMessage;
+import com.example.kafka.repository.OrderRepository;
+import com.example.kafka.repository.ProcessedMessageRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,35 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderConsumer {
 
     private final ObjectMapper objectMapper;
+    private final OrderRepository orderRepository;
+    private final ProcessedMessageRepository processedMessageRepository;
+
+
+    // Producer 端：用 @Transactional 保證「訂單」與「Outbox」同步存入。
+    // Relay 端：用 @Scheduled 保證訊息「至少發出一次」。
+    // Consumer 端：用「去重表」保證「即便收到兩次，也只執行一次」。
+    @KafkaListener(topics = "order_topic", groupId = "order_group")
+    @Transactional
+    public void consume(ConsumerRecord<String, String> record) throws JsonProcessingException {
+        String message = record.value();
+        Order order = objectMapper.readValue(message, Order.class);
+        String orderId = order.getOrderId();
+
+        if (processedMessageRepository.existsById(orderId)) {
+            log.warn("訊息已處理過，跳過: {}", orderId);
+            return;
+        }
+
+        OrderEntity orderEntity = OrderEntity.builder()
+                .orderId(orderId)
+                .product(order.getProduct())
+                .amount(order.getAmount())
+                .build();
+
+        orderRepository.save(orderEntity);
+
+        processedMessageRepository.save(new ProcessMessage(orderId));
+    }
 
 //    @KafkaHandler
     @KafkaListener(

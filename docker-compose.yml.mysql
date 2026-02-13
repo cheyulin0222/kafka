@@ -1,0 +1,12 @@
+services:
+  mysql:
+    image: mysql:8.0 # 或你用的版本
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      # 關鍵：將你剛寫好的檔案掛載進去容器內部的路徑
+      - D:/docker/mysql/conf/my.cnf:/etc/mysql/conf.d/my.cnf
+      - D:/docker/mysql/data:/var/lib/mysql

@@ -2,7 +2,9 @@ package com.example.kafka.service;
 
 import com.example.kafka.model.Order;
 import com.example.kafka.model.OrderEntity;
+import com.example.kafka.model.OutboxEntity;
 import com.example.kafka.repository.OrderRepository;
+import com.example.kafka.repository.OutboxRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 @Slf4j
 public class OrderService {
 
+    private final OutboxRepository outboxRepository;
     private final OrderRepository orderRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
@@ -109,17 +112,19 @@ public class OrderService {
     }
 
     @Transactional
-    public void createOrderOutbox(String orderId, String product, double amount) {
+    public void createOrderOutbox(String orderId, String product, double amount) throws JsonProcessingException {
         log.info("--- 執行全鏈路事務: {} ---", orderId);
 
         OrderEntity order = new OrderEntity(orderId, product, amount);
         orderRepository.save(order);
         log.info("1. 第一筆 JPA 已調用 save");
 
+        String jsonPayload = objectMapper.writeValueAsString(order);
+
         // 2. 存發件箱（這取代了原本的 kafkaTemplate.send）
         OutboxEntity outbox = new OutboxEntity();
         outbox.setTopic("order_topic");
-        outbox.setPayload("{ \"orderId\": \"" + orderId + "\" }");
+        outbox.setPayload(jsonPayload);
         outbox.setStatus("PENDING");
         outboxRepository.save(outbox);
     }

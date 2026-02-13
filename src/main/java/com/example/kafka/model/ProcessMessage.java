@@ -5,21 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Table(name = "process_message")
 @Entity
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "kafka_orders")
-@Builder
-public class OrderEntity {
+@AllArgsConstructor
+@Data
+public class ProcessMessage {
 
     @Id
     @Column(name = "order_id")
     private String orderId;
-    private String product;
-    private double amount;
 }
