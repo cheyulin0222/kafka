@@ -6,13 +6,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class OrderProducer {
+public class OrderProducerBefore {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     public void sendOrder(String orderId, String details) {
-        // 傳送到 orders 這個 topic
         kafkaTemplate.send("orders", orderId, details);
     }
-
 }

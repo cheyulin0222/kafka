@@ -1,5 +1,6 @@
 package com.example.kafka.controller;
 
+//import com.example.kafka.service.OrderService;
 import com.example.kafka.service.OrderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,10 @@ public class Test {
 
     }
 
-    @GetMapping("/createOrder")
-    public void createOrder(@RequestParam String orderId, @RequestParam String product, @RequestParam double amount) throws JsonProcessingException, InterruptedException {
-        orderService.createOrderWithSync(orderId, product, amount);
-    }
+//    @GetMapping("/createOrder")
+//    public void createOrder(@RequestParam String orderId, @RequestParam String product, @RequestParam double amount) throws JsonProcessingException, InterruptedException {
+//        orderService.createOrderWithSync(orderId, product, amount);
+//    }
 
 
 }

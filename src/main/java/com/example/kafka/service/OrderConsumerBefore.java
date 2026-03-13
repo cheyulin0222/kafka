@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
         sameIntervalTopicReuseStrategy = SameIntervalTopicReuseStrategy.SINGLE_TOPIC,
         exclude = {JsonProcessingException.class} // 格式錯誤不重試，直接進 DLT
 )
-public class OrderConsumer {
+public class OrderConsumerBefore {
 
     private final ObjectMapper objectMapper;
     private final OrderRepository orderRepository;
@@ -90,45 +90,5 @@ public class OrderConsumer {
         }
     }
 
-    @DltHandler
-    public void handleDlt(
-            String message,
-            // 將所有 Header 設為非必要 (required = false)，並用最寬鬆的 Object 接收
-            @Header(name = KafkaHeaders.RECEIVED_TOPIC, required = false) Object topic,
-            @Header(name = "x-retry-topic-original-offset", required = false) Object offset
-    ) {
-        try {
-            // 就算 topic 或 offset 是 null，Log 也不會崩潰
-            log.error("=== 訊息宣告不治 ===");
-            log.error("來自 Topic: {}", topic);
-            log.error("原始 Offset: {}", offset);
-            log.error("內容摘要: {}", message.substring(0, Math.min(message.length(), 100)));
-        } catch (Exception e) {
-            // 這是最後的保險絲，確保這一站一定會 Commit
-            log.error("DLT 紀錄過程發生非預期錯誤");
-        }
-    }
-
-
-//    @KafkaHandler
-//    public void handleOrder(Order order) {
-//        log.info("收到訂單! ID = {}, 商品 = {}, 金額 = {}", order.getOrderId(), order.getProduct(), order.getAmount());
-//    }
-//
-//    @KafkaHandler
-//    public void handleUser(User user) {
-//        log.info("收到使用者! ID = {}, 名稱 = {}", user.getId(), user.getName());
-//    }
-
-
-//    @KafkaListener(
-//            topics = "orders",
-//            groupId = "my-order-group",
-//            concurrency = "3"
-//    )
-//    public void listen(ConsumerRecord<String, String> record) {
-//        System.out.printf("收到訂單！Key: %s, Value: %s, 分區: %d, Offset: %d%n",
-//                record.key(), record.value(), record.partition(), record.offset());
-//    }
 
 }
